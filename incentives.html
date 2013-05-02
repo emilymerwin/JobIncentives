@@ -26,11 +26,11 @@ button {
 .bullet .measure.s0 { fill: lightsteelblue; }
 .bullet .measure.s1 { fill: steelblue; }
 .bullet .title { font-size: 13px; font-weight: bold;}
-.bullet .subtitle { fill: #999; }
+.bullet .subtitle { fill: #999; margin-top:2px;}
 
 </style>
 <body>
-<p id="menu"><b>Jobs promised vs. Jobs created </b><br>County: <select id="countySelect"></select><br/>Deobligated? <select id="deobligatedSelect"></select></p>
+<p id="menu"><b>Jobs promised vs. Jobs created </b><br>County: <select id="countySelect"></select><br/>Performance <select id="performanceSelect"></select></p>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="incentives.js"></script>
 <script>
@@ -49,24 +49,35 @@ var chart = d3.bullet()
 var countyMenu = d3.select("#countySelect")
 	.on("change", change);
 	
-var deobligatedMenu = d3.select("#deobligatedSelect")
-		.on("change", changeObligated);	
-	
-	deobligatedMenu.append("option").text("All");
-	deobligatedMenu.append("option").text("No");
-	deobligatedMenu.append("option").text("Yes");	
+var performanceMenu = d3.select("#performanceSelect")
+	.on("change", changePerformance);	
+
+performanceMenu.append("option").text("All");	
+performanceMenu.append("option").text("Met promise");
+performanceMenu.append("option").text("Did not meet promise");
+performanceMenu.append("option").text("Funds recovered");	
 		
 d3.json("incentives.json", function(error, data) {
 	data1 = data;
 	for (var i=0; i<data1.length; i++){
-		//There's some weird stuff showing up, deal with it
-		if(data1[i].Beneficiaries == "" /*|| data1[i].JobsPromised == null && data1[i].JobsRetained == null*/){
+		//get rid of some wierd looking ones
+		if(data1[i].Beneficiaries === "" || data1[i].JobsPromised === null || data1[i].JobsPromised === undefined || data[i].JobsPromised === 0){
 			data1.splice(i, 1);
 		}
+		var ratio = (data1[i].JobsDelivered/data1[i].JobsPromised *100);
+		if(ratio === undefined || isNaN(ratio) || ratio === null){
+			ratio = 0;
+		}
+		data1[i].ratio = ratio;
 		if(data1[i].COUNTY != "Multi-County"){
 			data1[i].COUNTY = data1[i].COUNTY + " County"
 		}
 	}
+	data1 = data1.sort(function(a, b) { return b.ratio - a.ratio; });
+	for(var i=0; i<data1.length; i++){
+		console.log("Ben: "+data1[i].Beneficiaries+ "Ratio: "+data1[i].ratio)
+	}
+	
 	doSVG(data1);
 
 	//we only want one of each county in our menu so we need to check and see if it's already in there
@@ -86,24 +97,37 @@ d3.json("incentives.json", function(error, data) {
 });
 
 var filterCounties = function(d){
-	deobligatedMenu.property("value", "All")/*.node().focus()*/;	
+	var selected = countyMenu.property("value");
+	performanceMenu.property("value", "All")/*.node().focus()*/;	
 	var myfilter = data1.filter(function(v) {
-		if(countyMenu.property("value") != "All Counties"){return (v.COUNTY) == countyMenu.property("value")}
+		if(selected != "All Counties"){return (v.COUNTY) === selected}
 		else{return true;};
 	});
 	//	doSVG(myfilter, counties);
 	doSVG(myfilter);	
 }
-filterObligated = function(d){
-	countyMenu.property("value", "All Counties")/*.node().focus()*/;
+//might use this later to allow removal/addition of deobligated entries
+/*filterObligated = function(d){
+	var selected = performanceMenu.property("value");
+	countyMenu.property("value", "All Counties");
 	var myfilter = data1.filter(function(v) {
-		if(deobligatedMenu.property("value") != "All"){ if(deobligatedMenu.property("value") == "Yes"){return v.Status1 == "Deob"} else{ return v.Status1 != "Deob"}}
+		if(selected != "All"){ if(selected === "Yes"){return v.Status1 === "Deob"} else{ return v.Status1 != "Deob"}}
 		else{return true;};
 	});
+	
 	doSVG(myfilter);	
+}*/
+var filterPerformance = function(d){
+	var selected = performanceMenu.property("value");
+	countyMenu.property("value", "All Counties")/*.node().focus()*/;
+	var myfilter = data1.filter(function(v){
+		if(selected != "All"){if(selected === "Met promise"){return v.MetJobGoal === "Y"} else if(selected === "Funds recovered"){return v.Status1 === "Deob"} else if(selected === "Did not meet promise"){return v.MetJobGoal === "N"} else{alert("what??"); return false;}}
+	});
+	doSVG(myfilter);
 }
-
 function doSVG(data){
+	//data = data/*.slice(0, 10)*/;
+	//console.log(data);
 	//svg = d3.select("body").data(data1).selectAll("svg")
 	svg = d3.select("body").selectAll("svg")
 	      .data(data, function(d) { return d.Serial; });//to keep the bars in the same place, get rid of the function. 
@@ -144,15 +168,16 @@ filterCounties();
       .duration(750)
       .each(shuffle);*/
 }
-function changeObligated() {
+function changePerformance() {
 	clearTimeout(timeout);
-	filterObligated();
+//	filterObligated();
+	filterPerformance();
 }
 	
 var timeout = setTimeout(function() {
 	//  menu.property("value", "All Counties").node().focus();
-	deobligatedMenu.property("value", "No").node().focus();
-	changeObligated();
+//	deobligatedMenu.property("value", "All").node().focus();
+//	filterPerformance();
 }, 5000);
 
 </script>

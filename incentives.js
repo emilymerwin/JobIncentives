@@ -17,10 +17,12 @@ d3.bullet = function() {
   // For each small multiple…
   function bullet(g) {
     g.each(function(d, i) {
-      var rangez = JobsPromised.call(this, d, i).slice().sort(d3.descending),
+      //var rangez = JobsPromised.call(this, d, i).slice().sort(d3.descending),
+var rangez = JobsPromised.call(this, d, i),
       //    markerz = JobsDelivered.call(this, d, i).slice().sort(d3.descending);
 		markerz = markers.call(this, d, i),
-		measurez = JobsDelivered.call(this, d, i).slice().sort(d3.descending),
+		//measurez = JobsDelivered.call(this, d, i).slice().sort(d3.descending),
+		measurez = JobsDelivered.call(this, d, i),
           g = d3.select(this);
       var x1 = d3.scale.linear()
           .domain([0, Math.max(rangez[0], markerz, measurez[0])])
@@ -163,7 +165,6 @@ d3.bullet = function() {
 
   // JobsPromised (bad, satisfactory, good)
   bullet.JobsPromised = function(x) {
-	alert("Jobs Promised Function x = "+x)
     if (!arguments.length) return JobsPromised;
     JobsPromised = x;
     return bullet;
@@ -178,7 +179,6 @@ d3.bullet = function() {
 
   // JobsDelivered (actual, forecast)
   bullet.JobsDelivered = function(x) {
-	alert("Jobs Delivered")
     if (!arguments.length) return JobsDelivered;
     JobsDelivered = x;
     return bullet;
@@ -216,6 +216,7 @@ function bulletJobsPromised(d) {
 }
 
 function bulletMarkers(d) {
+	
 	d.markers = Math.round(d.JobsPromised*.7);
   return d.markers;
 }

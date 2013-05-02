@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html>
 <meta charset="utf-8">
 <style>
 
@@ -24,16 +25,20 @@ button {
 .bullet .range.s2 { fill: #ccc; }
 .bullet .measure.s0 { fill: lightsteelblue; }
 .bullet .measure.s1 { fill: steelblue; }
-.bullet .title { font-size: 14px; font-weight: bold;}
+.bullet .title { font-size: 13px; font-weight: bold;}
 .bullet .subtitle { fill: #999; }
 
 </style>
-<!--<button>Update</button>-->
+<body>
+<p id="menu"><b>Jobs promised vs. Jobs created </b><br>County: <select id="countySelect"></select><br/>Deobligated? <select id="deobligatedSelect"></select></p>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="incentives.js"></script>
 <script>
 
-var margin = {top: 5, right: 40, bottom: 20, left: 220},
+var data1, svg;
+var setcountyMenu;
+var countyMenuArr = [];
+var margin = {top: 5, right: 20, bottom: 20, left: 280},
     width = 960 - margin.left - margin.right,
     height = 50 - margin.top - margin.bottom;
 
@@ -41,58 +46,116 @@ var chart = d3.bullet()
     .width(width)
     .height(height);
 
+var countyMenu = d3.select("#countySelect")
+	.on("change", change);
+	
+var deobligatedMenu = d3.select("#deobligatedSelect")
+		.on("change", changeObligated);	
+	
+	deobligatedMenu.append("option").text("All");
+	deobligatedMenu.append("option").text("No");
+	deobligatedMenu.append("option").text("Yes");	
+		
 d3.json("incentives.json", function(error, data) {
-  var svg = d3.select("body").selectAll("svg")
-      .data(data)
-    .enter().append("svg")
-      .attr("class", "bullet")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-      .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-      .call(chart);
+	data1 = data;
+	for (var i=0; i<data1.length; i++){
+		//There's some weird stuff showing up, deal with it
+		if(data1[i].Beneficiaries == "" /*|| data1[i].JobsPromised == null && data1[i].JobsRetained == null*/){
+			data1.splice(i, 1);
+		}
+		if(data1[i].COUNTY != "Multi-County"){
+			data1[i].COUNTY = data1[i].COUNTY + " County"
+		}
+	}
+	doSVG(data1);
 
-  var title = svg.append("g")
-      .style("text-anchor", "end")
-      .attr("transform", "translate(-6," + height / 2 + ")");
-
-  title.append("text")
-      .attr("class", "title")
-      .text(function(d) { return d.Beneficiaries; });
-
-  title.append("text")
-      .attr("class", "subtitle")
-      .attr("dy", "1em")
-      .text(function(d) { return d.COUNTY; });
-
-  d3.selectAll("button").on("click", function() {
-    svg.datum(randomize).call(chart.duration(1000)); // TODO automatic transition
-  });
+	//we only want one of each county in our menu so we need to check and see if it's already in there
+	setcountyMenu = function(){
+		countyMenuArr.push("All Counties");//This isn't in the data so we need to create it
+		data1.filter(function(v, i) {		
+				if(countyMenuArr.indexOf(v.COUNTY) != -1){ return true;}
+				else{countyMenuArr.push(v.COUNTY); return false;};
+		});
+		return countyMenuArr.sort();//Alphabetize
+	}
+	//add counties from the data to the menu
+	countyMenu.selectAll("option")
+		.data(setcountyMenu)
+		.enter().append("option")
+			.text(function(d) {return d});
 });
 
-function randomize(d) {
-	myBar = d.JobsPromised * .7;
-  if (!d.randomizer){d.randomizer = 1};
-
-  d.JobsPromised = d.JobsPromised.map(d.randomizer);
-//alert("Jobs = "+d.JobsPromised)
-//  d.markers = myBar.map(d.randomizer);
-//alert(",arkers = "+d.markers)
-//  d.JobsDelivered = d.JobsDelivered.map(d.randomizer);
-  return d;
+var filterCounties = function(d){
+	deobligatedMenu.property("value", "All")/*.node().focus()*/;	
+	var myfilter = data1.filter(function(v) {
+		if(countyMenu.property("value") != "All Counties"){return (v.COUNTY) == countyMenu.property("value")}
+		else{return true;};
+	});
+	//	doSVG(myfilter, counties);
+	doSVG(myfilter);	
+}
+filterObligated = function(d){
+	countyMenu.property("value", "All Counties")/*.node().focus()*/;
+	var myfilter = data1.filter(function(v) {
+		if(deobligatedMenu.property("value") != "All"){ if(deobligatedMenu.property("value") == "Yes"){return v.Status1 == "Deob"} else{ return v.Status1 != "Deob"}}
+		else{return true;};
+	});
+	doSVG(myfilter);	
 }
 
-function randomizer(d) {
-  var k = d3.max(d.JobsPromised) * .2;
-  return function(d) {
-    return Math.max(0, d + k * (Math.random() - .5));
-  };
+function doSVG(data){
+	//svg = d3.select("body").data(data1).selectAll("svg")
+	svg = d3.select("body").selectAll("svg")
+	      .data(data, function(d) { return d.Serial; });//to keep the bars in the same place, get rid of the function. 
+			
+	svg.exit().transition().duration(0)		
+	//.attr("x", -x1.rangeBand())
+		.remove();
+
+	var svgEnter = svg.enter().append("svg")
+						.attr("class", "bullet")	
+	      				.attr("width", width + margin.left + margin.right)
+	      				.attr("height", height + margin.top + margin.bottom)
+	    				.append("g")
+	      					.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+							.attr("class", "holder")			
+							.append("g")
+								.style("text-anchor", "end")
+		      					.attr("transform", "translate(-6," + height / 2 + ")")//;
+								//.attr("class", "textanchor");
+	
+	svgEnter.append("text")
+		.attr("class", "title")
+		.text(function(d) { return d.Beneficiaries; });	
+		
+	svgEnter.append("text")
+		.attr("class", "subtitle")
+		.attr("dy", "1em")
+		.text(function(d, i){ return d.COUNTY;});
+				
+	d3.transition(svg).select(".holder").call(chart.duration(1000));
+}//doSVG
+
+function change() {
+  clearTimeout(timeout);
+filterCounties();
+//svg.datum(data1).call(chart.duration(1000));
+  /*d3.transition()
+      .duration(750)
+      .each(shuffle);*/
 }
-/*function randomize(d) {
-  d.randomizer = d.big;
-  d.JobsPromised = d.big;
-  d.JobsDelivered = d.number;
-  d.JobsDelivered = d.number;
-  return d;
-}*/
+function changeObligated() {
+	clearTimeout(timeout);
+	filterObligated();
+}
+	
+var timeout = setTimeout(function() {
+	//  menu.property("value", "All Counties").node().focus();
+	deobligatedMenu.property("value", "No").node().focus();
+	changeObligated();
+}, 5000);
+
 </script>
+	
+</body>
+</html>

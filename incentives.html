@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <meta charset="utf-8">
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" type="text/css"/>
+<link rel="stylesheet" href="http://host.coxmediagroup.com/ajc/digitalprojects/global/css/iFrame_Medley.css"type="text/css"/>
 <style>
 
 body {
@@ -11,11 +13,11 @@ body {
   width: 960px;
 }
 
-button {
+/*button {
   position: absolute;
   right: 10px;
   top: 10px;
-}
+}*/
 
 .bullet { font: 10px sans-serif;}
 .bullet .marker { stroke: #000; stroke-width: 2px;}
@@ -27,12 +29,15 @@ button {
 .bullet .bonus .measure.s0 { fill: steelblue; }
 .bullet .title { font-size: 13px; font-weight: bold;}
 .bullet .subtitle { fill: #999; margin-top:2px;}
+.tiptitl{font-weight:bold}
 
 </style>
 <body>
-<p id="menu"><b>Jobs promised vs. Jobs created </b><br>County: <select id="countySelect"></select><br/>Performance <select id="performanceSelect"></select></p>
+<p id="menu"><b>Jobs promised vs. Jobs created </b><br>County: <select id="countySelect"></select><br/>Performance <select id="performanceSelect"></select><br/><button id="sortMe">Reverse order</button></p>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="incentives.js"></script>
+<script src="http://code.jquery.com/jquery-1.9.1.min.js" type="text/javascript"></script>
+<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.min.js" type="text/javascript"></script>
 <script>
 
 var data1, svg;
@@ -52,11 +57,28 @@ var countyMenu = d3.select("#countySelect")
 var performanceMenu = d3.select("#performanceSelect")
 	.on("change", changePerformance);	
 
+function sortBars(){	
+	d3.select("body").selectAll("svg").sort(function(a, b){		
+		if(sortOrder){
+			return d3.ascending(a.ratio, b.ratio);
+		}
+		else{
+			return d3.descending(a.ratio,b.ratio);
+		}	
+	})
+	.transition().duration(1000);
+	
+	sortOrder = !sortOrder;
+}
 performanceMenu.append("option").text("All");	
 performanceMenu.append("option").text("Met promise");
 performanceMenu.append("option").text("Did not meet promise");
 performanceMenu.append("option").text("Funds recovered");	
 		
+var sortOrder = false;		
+d3.select("#sortMe").on("click", function() {
+	sortBars();
+});
 d3.json("incentives.json", function(error, data) {
 	data1 = data;
 	for (var i=0; i<data1.length; i++){
@@ -170,9 +192,22 @@ function doSVG(data){
 	d3.transition(svg).select(".holder").call(chart.duration(1000));
 	svg.sort(function(a, b){return d3.descending(a.ratio, b.ratio)})
 		.transition().duration(1000);
+	sortBars();
 	//change the color of the over-acheiver bar
 	svg.select(".holder")
 		.attr("class", function(d){ if(d.ratio >1){return "bonus"} else{ return }});
+		$(document).tooltip({
+			items: "svg", 
+			content: function(){ 
+				var data = this.__data__;
+				var tip = "<span class='tip'><span class='tiptitl'>Beneficiary:</span> "+data.Beneficiaries+"<br/><span class='tiptitl'>Jobs Promised:</span> "+data.JobsPromised+"<br/><span class='tiptitl'>Jobs Delivered:</span> "+data.JobsDelivered+"<br/><span class='tiptitl'>Grant amount:</span> $"+data.Grant_Amt;
+				if(data.Recaptured_Deob != null){
+					tip += "<br/><span class='tiptitl'>Recaptured funds:</span> $"+data.Recaptured_Deob
+				}
+				tip += "<br/><span class='tiptitl'>Description: </span>"+data.Description+"</span>"
+				return tip;
+			}
+		});
 }//doSVG
 
 function change() {

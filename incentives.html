@@ -25,10 +25,11 @@ body {
 .bullet .range.s0 { fill: #eee; }
 .bullet .range.s1 { fill: #ddd; }
 .bullet .range.s2 { fill: #ccc; }
-.bullet .measure.s0, .bullet .measure.s1 { fill: lightsteelblue; }
-.bullet .bonus .measure.s0 { fill: steelblue; }
+.bullet .measure.s0, .bullet .measure.s1 { fill: steelblue; }
+.bullet .bonus .measure.s0 { fill: lightsteelblue; }
+/*.bullet .measure.s1 { fill: steelblue; }*/
 .bullet .title { font-size: 13px; font-weight: bold;}
-.bullet .subtitle { fill: #999; margin-top:2px;}
+.bullet .subtitle { fill: #999; margin-top:3px;}
 .tiptitl{font-weight:bold}
 
 </style>
@@ -43,7 +44,7 @@ body {
 var data1, svg;
 var setcountyMenu;
 var countyMenuArr = [];
-var margin = {top: 5, right: 20, bottom: 20, left: 280},
+var margin = {top: 5, right: 20, bottom: 20, left: 300},
     width = 960 - margin.left - margin.right,
     height = 50 - margin.top - margin.bottom;
 
@@ -55,8 +56,8 @@ var countyMenu = d3.select("#countySelect")
 	.on("change", change);
 	
 var performanceMenu = d3.select("#performanceSelect")
-	.on("change", changePerformance);	
-
+	.on("change", changePerformance);
+	
 function sortBars(){	
 	d3.select("body").selectAll("svg").sort(function(a, b){		
 		if(sortOrder){
@@ -73,20 +74,21 @@ function sortBars(){
 performanceMenu.append("option").text("All");	
 performanceMenu.append("option").text("Met promise");
 performanceMenu.append("option").text("Did not meet promise");
-performanceMenu.append("option").text("Funds recovered");	
-		
+performanceMenu.append("option").text("Funds recovered");
+	
 var sortOrder = false;		
 d3.select("#sortMe").on("click", function() {
 	sortBars();
 });
+
 d3.json("incentives.json", function(error, data) {
 	data1 = data;
 	for (var i=0; i<data1.length; i++){
-		//get rid of some wierd looking ones
-		if(data1[i].Beneficiaries === "" || data1[i].JobsPromised === null || data1[i].JobsPromised === undefined || data[i].JobsPromised === 0){
+		//get rid of some irregular ones that don't make sense with our presentation
+		if(data1[i].Beneficiaries === "" || data1[i].JobsPromised === null || data1[i].JobsPromised === undefined || data[i].JobsPromised === 0 || data[i].JobsPromised === []){
 			data1.splice(i, 1);
 		}
-		var ratio = (data1[i].JobsDelivered/data1[i].JobsPromised *100);
+		var ratio = (data1[i].JobsDelivered/data1[i].JobsPromised);
 		if(ratio === undefined || isNaN(ratio) || ratio === null){
 			ratio = 0;
 		}
@@ -101,14 +103,10 @@ d3.json("incentives.json", function(error, data) {
 		}
 		
 		if(data1[i].COUNTY != "Multi-County"){
-			data1[i].COUNTY = data1[i].COUNTY + " County"
+			data1[i].COUNTY = data1[i].COUNTY + " County";
 		}
 	}
-	data1 = data1.sort(function(a, b) { return b.ratio - a.ratio; });
-	for(var i=0; i<data1.length; i++){
-		console.log("Ben: "+data1[i].Beneficiaries+ "Ratio: "+data1[i].ratio)
-	}
-	
+
 //	data1 = data1.sort(function(a, b) { return b.ratio - a.ratio; });
 	doSVG(data1);
 
@@ -125,14 +123,14 @@ d3.json("incentives.json", function(error, data) {
 	countyMenu.selectAll("option")
 		.data(setcountyMenu)
 		.enter().append("option")
-			.text(function(d) {return d});
-});
+			.text(function(d) {return d;});
+});//d3.json()
 
 var filterCounties = function(d){
 	var selected = countyMenu.property("value");
 	performanceMenu.property("value", "All")/*.node().focus()*/;	
 	var myfilter = data1.filter(function(v) {
-		if(selected != "All Counties"){return (v.COUNTY) === selected}
+		if(selected != "All Counties"){return (v.COUNTY) === selected;}
 		else{return true;};
 	});
 	//	doSVG(myfilter, counties);
@@ -145,21 +143,19 @@ var filterCounties = function(d){
 	var myfilter = data1.filter(function(v) {
 		if(selected != "All"){ if(selected === "Yes"){return v.Status1 === "Deob"} else{ return v.Status1 != "Deob"}}
 		else{return true;};
-	});
-	
+	});	
 	doSVG(myfilter);	
 }*/
 var filterPerformance = function(d){
 	var selected = performanceMenu.property("value");
 	countyMenu.property("value", "All Counties")/*.node().focus()*/;
 	var myfilter = data1.filter(function(v){
-		if(selected != "All"){if(selected === "Met promise"){return v.MetJobGoal === "Y"} else if(selected === "Funds recovered"){return v.Status1 === "Deob"} else if(selected === "Did not meet promise"){return v.MetJobGoal === "N"} else{alert("what??"); return false;}}
+		if(selected != "All"){if(selected === "Met promise"){return v.MetJobGoal === "Y"} else if(selected === "Funds recovered"){return v.Status1 === "Deob"} else{return v.MetJobGoal === "N"};}
+		else{return true;};
 	});
 	doSVG(myfilter);
 }
 function doSVG(data){
-	//data = data/*.slice(0, 10)*/;
-	//console.log(data);
 	//svg = d3.select("body").data(data1).selectAll("svg")
 	svg = d3.select("body").selectAll("svg")
 	      .data(data, function(d) { return d.Serial; });//to keep the bars in the same place, get rid of the function. 
@@ -189,13 +185,13 @@ function doSVG(data){
 		.attr("dy", "1em")
 		.text(function(d, i){ return d.COUNTY;});
 				
-	d3.transition(svg).select(".holder").call(chart.duration(1000));
-	svg.sort(function(a, b){return d3.descending(a.ratio, b.ratio)})
-		.transition().duration(1000);
+//	d3.transition(svg).select(".holder").call(chart.duration(1000));
+	svg.select(".holder").call(chart.duration(1000));
 	sortBars();
 	//change the color of the over-acheiver bar
 	svg.select(".holder")
 		.attr("class", function(d){ if(d.ratio >1){return "bonus"} else{ return }});
+	
 		$(document).tooltip({
 			items: "svg", 
 			content: function(){ 
@@ -220,7 +216,6 @@ filterCounties();
 }
 function changePerformance() {
 	clearTimeout(timeout);
-//	filterObligated();
 	filterPerformance();
 }
 	

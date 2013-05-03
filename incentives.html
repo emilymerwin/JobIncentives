@@ -87,6 +87,7 @@ d3.json("incentives.json", function(error, data) {
 		console.log("Ben: "+data1[i].Beneficiaries+ "Ratio: "+data1[i].ratio)
 	}
 	
+//	data1 = data1.sort(function(a, b) { return b.ratio - a.ratio; });
 	doSVG(data1);
 
 	//we only want one of each county in our menu so we need to check and see if it's already in there
@@ -167,6 +168,8 @@ function doSVG(data){
 		.text(function(d, i){ return d.COUNTY;});
 				
 	d3.transition(svg).select(".holder").call(chart.duration(1000));
+	svg.sort(function(a, b){return d3.descending(a.ratio, b.ratio)})
+		.transition().duration(1000);
 	//change the color of the over-acheiver bar
 	svg.select(".holder")
 		.attr("class", function(d){ if(d.ratio >1){return "bonus"} else{ return }});

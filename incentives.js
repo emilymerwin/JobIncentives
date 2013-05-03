@@ -21,11 +21,11 @@ d3.bullet = function() {
 var rangez = JobsPromised.call(this, d, i),
       //    markerz = JobsDelivered.call(this, d, i).slice().sort(d3.descending);
 		markerz = markers.call(this, d, i),
-		//measurez = JobsDelivered.call(this, d, i).slice().sort(d3.descending),
-		measurez = JobsDelivered.call(this, d, i),
+		measurez = JobsDelivered.call(this, d, i).slice().sort(d3.descending),
+	//	measurez = JobsDelivered.call(this, d, i),
           g = d3.select(this);
       var x1 = d3.scale.linear()
-          .domain([0, Math.max(rangez[0], markerz, measurez[0])])
+          .domain([0, Math.max(rangez, markerz, measurez[0])])
           .range(reverse ? [width, 0] : [0, width]);
 
       // Retrieve the old x-scale, if this is an update.
@@ -42,7 +42,7 @@ var rangez = JobsPromised.call(this, d, i),
 
       // Update the range rects.
       var range = g.selectAll("rect.range")
-          .data(rangez);
+          .data([rangez]);
       range.enter().append("rect")
           .attr("class", function(d, i) { return "range s" + i; })
           .attr("width", w0)
@@ -222,7 +222,7 @@ function bulletMarkers(d) {
 }
 
 function bulletJobsDelivered(d) {
-  return d.JobsDelivered;
+  return d.JobsDelivered2;
 }
 
 function bulletTranslate(x) {

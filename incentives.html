@@ -23,8 +23,8 @@ button {
 .bullet .range.s0 { fill: #eee; }
 .bullet .range.s1 { fill: #ddd; }
 .bullet .range.s2 { fill: #ccc; }
-.bullet .measure.s0 { fill: lightsteelblue; }
-.bullet .measure.s1 { fill: steelblue; }
+.bullet .measure.s0, .bullet .measure.s1 { fill: lightsteelblue; }
+.bullet .bonus .measure.s0 { fill: steelblue; }
 .bullet .title { font-size: 13px; font-weight: bold;}
 .bullet .subtitle { fill: #999; margin-top:2px;}
 
@@ -69,6 +69,15 @@ d3.json("incentives.json", function(error, data) {
 			ratio = 0;
 		}
 		data1[i].ratio = ratio;
+		//if they exceeded promised jobs, create a new bar to show distinction. Creating property .JobsDelivered2 to hold our array
+		if(ratio > 1){
+			data1[i].JobsDelivered2 = [data1[i].JobsPromised, data1[i].JobsDelivered];
+		}
+		//rangez is expecting an array bc of what we did above 
+		else{
+			data1[i].JobsDelivered2 = [data[i].JobsDelivered];
+		}
+		
 		if(data1[i].COUNTY != "Multi-County"){
 			data1[i].COUNTY = data1[i].COUNTY + " County"
 		}
@@ -158,6 +167,9 @@ function doSVG(data){
 		.text(function(d, i){ return d.COUNTY;});
 				
 	d3.transition(svg).select(".holder").call(chart.duration(1000));
+	//change the color of the over-acheiver bar
+	svg.select(".holder")
+		.attr("class", function(d){ if(d.ratio >1){return "bonus"} else{ return }});
 }//doSVG
 
 function change() {

@@ -8,7 +8,7 @@ d3.bullet = function() {
       reverse = false,
       duration = 0,
       JobsPromised = bulletJobsPromised,
-      markers = bulletMarkers,
+    //  markers = bulletMarkers,
       JobsDelivered = bulletJobsDelivered,
       width = 380,
       height = 30,
@@ -20,12 +20,12 @@ d3.bullet = function() {
       //var rangez = JobsPromised.call(this, d, i).slice().sort(d3.descending),
 var rangez = JobsPromised.call(this, d, i),
       //    markerz = JobsDelivered.call(this, d, i).slice().sort(d3.descending);
-		markerz = markers.call(this, d, i),
+	//	markerz = markers.call(this, d, i),
 		measurez = JobsDelivered.call(this, d, i).slice().sort(d3.descending),
 	//	measurez = JobsDelivered.call(this, d, i),
           g = d3.select(this);
       var x1 = d3.scale.linear()
-          .domain([0, Math.max(rangez, markerz, measurez[0])])
+          .domain([0, Math.max(rangez/*, markerz*/, measurez[0])])
           .range(reverse ? [width, 0] : [0, width]);
 
       // Retrieve the old x-scale, if this is an update.
@@ -81,7 +81,7 @@ var rangez = JobsPromised.call(this, d, i),
           .attr("y", height / 3);
 
       // Update the marker lines.
-      var marker = g.selectAll("line.marker")
+    /*  var marker = g.selectAll("line.marker")
           .data([markerz]);
       marker.enter().append("line")
           .attr("class", "marker")
@@ -92,14 +92,14 @@ var rangez = JobsPromised.call(this, d, i),
         .transition()
           .duration(duration)
           .attr("x1", x1)
-          .attr("x2", x1);
-
+          .attr("x2", x1);*/
+/*
       marker.transition()
           .duration(duration)
           .attr("x1", x1)
           .attr("x2", x1)
           .attr("y1", height / 6)
-          .attr("y2", height * 5 / 6);
+          .attr("y2", height * 5 / 6);*/
 
       // Compute the tick format.
       var format = tickFormat || x1.tickFormat(4);
@@ -171,11 +171,11 @@ var rangez = JobsPromised.call(this, d, i),
   };
 
   // markers (previous, goal)
-  bullet.markers = function(x) {
+ /* bullet.markers = function(x) {
     if (!arguments.length) return markers;
     markers = x;
     return bullet;
-  };
+  };*/
 
   // JobsDelivered (actual, forecast)
   bullet.JobsDelivered = function(x) {
@@ -215,11 +215,11 @@ function bulletJobsPromised(d) {
   return d.JobsPromised;
 }
 
-function bulletMarkers(d) {
+/*function bulletMarkers(d) {
 	
 	d.markers = Math.round(d.JobsPromised*.7);
   return d.markers;
-}
+}*/
 
 function bulletJobsDelivered(d) {
   return d.JobsDelivered2;

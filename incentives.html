@@ -1,8 +1,16 @@
 <!DOCTYPE html>
 <html>
 <meta charset="utf-8">
+<!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<title>Does Georgia get bang for its economic development bucks?</title>
+<base target="_parent" />
+<link rel="stylesheet" href="http://alt.coxnewsweb.com/ajc/_newsapps/libraries/css/skeleton/base.css" type="text/css"/>
+<link rel="stylesheet" href="http://alt.coxnewsweb.com/ajc/_newsapps/libraries/css/skeleton/skeleton.css" type="text/css"/>
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" type="text/css"/>
-<link rel="stylesheet" href="http://host.coxmediagroup.com/ajc/digitalprojects/global/css/iFrame_Medley.css"type="text/css"/>
+<link rel="stylesheet" href="http://host.coxmediagroup.com/ajc/digitalprojects/global/css/iFrame_Medley.css" type="text/css"/>
 <style>
 
 body {
@@ -10,7 +18,7 @@ body {
   margin: auto;
   padding-top: 40px;
   position: relative;
-  width: 960px;
+  width: 100%;
 }
 
 /*button {
@@ -18,23 +26,73 @@ body {
   right: 10px;
   top: 10px;
 }*/
-
+button{
+	margin-top:1.1em;
+	margin-bottom:0;
+}
 .bullet { font: 10px sans-serif;}
 /*.bullet .marker { stroke: #000; stroke-width: 2px;}*/
 .bullet .tick line { stroke: #666; stroke-width: .5px; }
-.bullet .range.s0 { fill: #eee; }
+.bullet .range.s0 { fill: #CED1D1; }
+#legend{
+	right:0;
+	float:right;
+	text-align:center;
+}
+#legend #promisedKey { 
+	border-bottom:25px solid #CED1D1;
+/*	background-color: #eee;		
+	display:inline-block; 
+	width:30px; 
+	height:25px; 
+	margin:-2px;	
+	position:relative;
+	top:6px;*/
+}
+#legend #deliveredKey {
+/*	display:inline-block;
+	width:30px;
+	height:8px;
+	background-color: #366DA5;
+	position:relative;*/
+	/*top:10px;*/
+	border-bottom:8px solid #366da5;
+	padding-bottom:11px;
+}
+#legend #bonusKey{
+	border-bottom:8px solid #A0B7D6;
+	padding-bottom:11px;
+}
+.menuGroup{
+	display:absolute;
+	padding:5px;
+	margin:5px;
+	/*height:60px;*/
+}
+
 .bullet .range.s1 { fill: #ddd; }
 .bullet .range.s2 { fill: #ccc; }
 .bullet .measure.s0, .bullet .measure.s1 { fill: steelblue; }
 .bullet .bonus .measure.s0 { fill: lightsteelblue; }
 /*.bullet .measure.s1 { fill: steelblue; }*/
-.bullet .title { font-size: 13px; font-weight: bold;}
+.bullet .title { font-size: 12px; font-weight: bold;}
 .bullet .subtitle { fill: #999; margin-top:3px;}
 .tiptitl{font-weight:bold}
 
 </style>
-<body>
-<p id="menu"><b>Jobs promised vs. Jobs created </b><br>County: <select id="countySelect"></select><br/>Performance <select id="performanceSelect"></select><br/><button id="sortMe">Reverse order</button></p>
+<body class="container twelve columns">
+<div class="container nine columns.omega">
+	<div class="three columns alpha">County<select id="countySelect"></select></div>
+	<div class="three columns ">Performance<select id="performanceSelect"></select></div>
+	<div class="three columns"><button id="sortMe"></button></div>
+</div>
+
+<div id="legend" class="container.omega seven columns.omega">
+	<div id="promisedKey" class="menuGroup two columns">Jobs promised</div>
+	<div id="deliveredKey" class="menuGroup two columns">Jobs created</div>
+	<div id="bonusKey" class="menuGroup four columns">Jobs created above promise</div>
+</div>
+<div id="incentives-chart" class="container twelve columns"></div>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="incentives.js"></script>
 <script src="http://code.jquery.com/jquery-1.9.1.min.js" type="text/javascript"></script>
@@ -44,8 +102,9 @@ body {
 var data1, svg;
 var setcountyMenu;
 var countyMenuArr = [];
-var margin = {top: 5, right: 20, bottom: 20, left: 300},
-    width = 960 - margin.left - margin.right,
+
+var margin = {top: 5, right:$("body").width()*.03, bottom: 20, left: $("body").width()*.1},
+    width = $("body").width() - margin.left - margin.right,
     height = 50 - margin.top - margin.bottom;
 
 var chart = d3.bullet()
@@ -57,13 +116,17 @@ var countyMenu = d3.select("#countySelect")
 	
 var performanceMenu = d3.select("#performanceSelect")
 	.on("change", changePerformance);
-	
+$("#sortMe").button({label:"Sort worst to best"});
+$("#countySelect").menu();
+$("#performanceSelect").menu();		
 function sortBars(){	
-	d3.select("body").selectAll("svg").sort(function(a, b){		
+	d3.select("body").select("#incentives-chart").selectAll("svg").sort(function(a, b){		
 		if(sortOrder){
+			$("#sortMe").button("option", "label", "Sort best to worst");
 			return d3.ascending(a.ratio, b.ratio);
 		}
 		else{
+			$("#sortMe").button("option", "label", "Sort worst to best");
 			return d3.descending(a.ratio,b.ratio);
 		}	
 	})

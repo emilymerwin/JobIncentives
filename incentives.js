@@ -10,7 +10,7 @@ d3.bullet = function() {
       JobsPromised = bulletJobsPromised,
     //  markers = bulletMarkers,
       JobsDelivered = bulletJobsDelivered,
-      width = 380,
+      width = $("body").width() - margin.left - margin.right,
       height = 30,
       tickFormat = null;
 

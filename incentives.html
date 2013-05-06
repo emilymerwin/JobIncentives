@@ -238,7 +238,7 @@ var filterPerformance = function(d){
 }
 function doSVG(data){
 	//svg = d3.select("body").data(data1).selectAll("svg")
-	svg = d3.select("body").selectAll("svg")
+	svg = d3.select("body").select("#incentives-chart").selectAll("svg")
 	      .data(data, function(d) { return d.Serial; });//to keep the bars in the same place, get rid of the function. 
 			
 	svg.exit().transition().duration(0)		
@@ -252,32 +252,27 @@ function doSVG(data){
 	    				.append("g")
 	      					.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 							.attr("class", "holder")			
-							.append("g")
-								.style("text-anchor", "end")
-		      					.attr("transform", "translate(-6," + height / 2 + ")")//;
-								//.attr("class", "textanchor");
 	
-	svgEnter.append("text")
-		.attr("class", "title")
-		.text(function(d) { return d.Beneficiaries; });	
-		
-	svgEnter.append("text")
-		.attr("class", "subtitle")
-		.attr("dy", "1em")
-		.text(function(d, i){ return d.COUNTY;});
-				
 //	d3.transition(svg).select(".holder").call(chart.duration(1000));
-	svg.select(".holder").call(chart.duration(1000));
+	svg.select(".holder").append("g").attr("class", "bars").call(chart.duration(1000));
+	sortOrder = false;
 	sortBars();
 	//change the color of the over-acheiver bar
 	svg.select(".holder")
 		.attr("class", function(d){ if(d.ratio >1){return "bonus"} else{ return }});
 	
 		$(document).tooltip({
-			items: "svg", 
+			items: "svg g g", 
 			content: function(){ 
 				var data = this.__data__;
-				var tip = "<span class='tip'><span class='tiptitl'>Beneficiary:</span> "+data.Beneficiaries+"<br/><span class='tiptitl'>Jobs Promised:</span> "+data.JobsPromised+"<br/><span class='tiptitl'>Jobs Delivered:</span> "+data.JobsDelivered+"<br/><span class='tiptitl'>Grant amount:</span> $"+data.Grant_Amt;
+				var tip = "<span class='tip'><span class='tiptitl'>Beneficiary:</span> ";
+				if(data.longName != null){
+					tip += data.longName;
+				}
+				else{
+					tip += data.Beneficiaries;
+				}
+				tip += "<br/><span class='tiptitl'>Jobs Promised:</span> "+data.JobsPromised+"<br/><span class='tiptitl'>Jobs Delivered:</span> "+data.JobsDelivered+"<br/><span class='tiptitl'>Grant amount:</span> $"+data.Grant_Amt;
 				if(data.Recaptured_Deob != null){
 					tip += "<br/><span class='tiptitl'>Recaptured funds:</span> $"+data.Recaptured_Deob
 				}

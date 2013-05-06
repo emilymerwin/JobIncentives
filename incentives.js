@@ -3,7 +3,9 @@
 // Chart design based on the recommendations of Stephen Few. Implementation
 // based on the work of Clint Ivy, Jamie Love, and Jason Davies.
 // http://projects.instantcognition.com/protovis/bulletchart/
+var titlePlaceholder;
 d3.bullet = function() {
+	
   var orient = "left", // TODO top & bottom
       reverse = false,
       duration = 0,
@@ -13,6 +15,8 @@ d3.bullet = function() {
       width = $("body").width() - margin.left - margin.right,
       height = 30,
       tickFormat = null;
+	titlePlaceholder = 110;
+		
 
   // For each small multiple…
   function bullet(g) {
@@ -26,7 +30,7 @@ var rangez = JobsPromised.call(this, d, i),
           g = d3.select(this);
       var x1 = d3.scale.linear()
           .domain([0, Math.max(rangez/*, markerz*/, measurez[0])])
-          .range(reverse ? [width, 0] : [0, width]);
+          .range(reverse ? [width, titlePlaceholder] : [titlePlaceholder, width]);
 
       // Retrieve the old x-scale, if this is an update.
       var x0 = this.__chart__ || d3.scale.linear()
@@ -47,15 +51,15 @@ var rangez = JobsPromised.call(this, d, i),
           .attr("class", function(d, i) { return "range s" + i; })
           .attr("width", w0)
           .attr("height", height)
-          .attr("x", reverse ? x0 : 0)
+          .attr("x", reverse ? x0 : titlePlaceholder)
         .transition()
           .duration(duration)
           .attr("width", w1)
-          .attr("x", reverse ? x1 : 0);
+          .attr("x", reverse ? x1 : titlePlaceholder);
 
       range.transition()
           .duration(duration)
-          .attr("x", reverse ? x1 : 0)
+          .attr("x", reverse ? x1 : titlePlaceholder)
           .attr("width", w1)
           .attr("height", height);
 
@@ -66,18 +70,18 @@ var rangez = JobsPromised.call(this, d, i),
           .attr("class", function(d, i) { return "measure s" + i; })
           .attr("width", w0)
           .attr("height", height / 3)
-          .attr("x", reverse ? x0 : 0)
+          .attr("x", reverse ? x0 : titlePlaceholder)
           .attr("y", height / 3)
         .transition()
           .duration(duration)
           .attr("width", w1)
-          .attr("x", reverse ? x1 : 0);
+          .attr("x", reverse ? x1 : titlePlaceholder);
 
       measure.transition()
           .duration(duration)
           .attr("width", w1)
           .attr("height", height / 3)
-          .attr("x", reverse ? x1 : 0)
+          .attr("x", reverse ? x1 : titlePlaceholder)
           .attr("y", height / 3);
 
       // Update the marker lines.
@@ -151,6 +155,19 @@ var rangez = JobsPromised.call(this, d, i),
           .attr("transform", bulletTranslate(x1))
           .style("opacity", 1e-6)
           .remove();
+			
+		var texts=	g.append("g")
+				.style("text-anchor", "end")
+				.attr("class", "texts")
+				.attr("transform", "translate("+(titlePlaceholder-2)+"," + height / 2 + ")")//;
+				//.attr("class", "textanchor");
+		texts.append("text")
+			.attr("class", "title")
+			.text(function(d) { return d.Beneficiaries; });	
+		texts.append("text")
+			.attr("class", "subtitle")
+			.attr("dy", "1em")
+			.text(function(d, i){ return d.COUNTY;});
     });
     d3.timer.flush();
   }

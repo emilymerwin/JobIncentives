@@ -80,7 +80,24 @@ button{
 .tiptitl{font-weight:bold}
 
 </style>
-<body class="container twelve columns">
+<script>
+function detectSVG(){
+	if (Modernizr.svg) {
+		document.getElementById("incentives-chart").style.display = "block";
+	//	document.getElementById("fallback").style.display = "none";
+	} else {
+		document.getElementById("fallback").style.display = "block";
+		document.getElementById("incentives-chart").style.display = "none";
+	}
+}
+</script>
+<body class="container twelve columns" onload="detectSVG()">
+	<!--[if lte IE 8]>
+	<div id="fallback" style="display:block;"><div style="margin:15px 0px 0px 0px;font-family:'Arial'; color:#777;font-size:12px;">Your browser is out of date. Please upgrade your browser to the latest version to view this graphic.</div></div>
+	<style type="text/css">
+	#incentives-chart {display:none;} 
+	#legend {display:none;}</style>
+	<![endif]-->
 <div class="container nine columns.omega">
 	<div class="three columns alpha">County<select id="countySelect"></select></div>
 	<div class="three columns ">Performance<select id="performanceSelect"></select></div>
@@ -97,6 +114,7 @@ button{
 <script src="incentives.js"></script>
 <script src="http://code.jquery.com/jquery-1.9.1.min.js" type="text/javascript"></script>
 <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.min.js" type="text/javascript"></script>
+<script src="http://alt.coxnewsweb.com/ajc/_newsapps/libraries/browsersupport/modernizr.custom.16715.js" type="text/javascript"></script>
 <script>
 
 var data1, svg;

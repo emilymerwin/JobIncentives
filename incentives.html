@@ -258,7 +258,7 @@ function doSVG(data){
 	sortBars();
 	//change the color of the over-acheiver bar
 	svg.select(".holder")
-		.attr("class", function(d){ if(d.ratio >1){return "bonus"} else{ return }});
+		.attr("class", function(d){ if(d.ratio >1){return "holder bonus"} else{ return "holder"}});
 	
 		$(document).tooltip({
 			items: "svg g g", 

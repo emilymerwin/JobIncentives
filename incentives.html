@@ -156,7 +156,6 @@ performanceMenu.append("option").text("All");
 performanceMenu.append("option").text("Met promise");
 performanceMenu.append("option").text("Did not meet promise");
 performanceMenu.append("option").text("Funds recovered");
-	
 var sortOrder = false;		
 d3.select("#sortMe").on("click", function() {
 	sortBars();
@@ -274,9 +273,9 @@ function doSVG(data){
 				}
 				tip += "<br/><span class='tiptitl'>Jobs Promised:</span> "+data.JobsPromised+"<br/><span class='tiptitl'>Jobs Delivered:</span> "+data.JobsDelivered+"<br/><span class='tiptitl'>Grant amount:</span> $"+data.Grant_Amt;
 				if(data.Recaptured_Deob != null){
-					tip += "<br/><span class='tiptitl'>Recaptured funds:</span> $"+data.Recaptured_Deob
+					tip += "<br/><span class='tiptitl'>Recaptured funds:</span> $"+data.Recaptured_Deob;
 				}
-				tip += "<br/><span class='tiptitl'>Description: </span>"+data.Description+"</span>"
+				tip += "<br/><span class='tiptitl'>Description: </span>"+data.Description+"</span>";
 				return tip;
 			}
 		});

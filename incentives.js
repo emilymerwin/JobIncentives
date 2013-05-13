@@ -22,7 +22,7 @@ d3.bullet = function() {
   function bullet(g) {
     g.each(function(d, i) {
       //var rangez = JobsPromised.call(this, d, i).slice().sort(d3.descending),
-var rangez = JobsPromised.call(this, d, i),
+	var rangez = JobsPromised.call(this, d, i),
       //    markerz = JobsDelivered.call(this, d, i).slice().sort(d3.descending);
 	//	markerz = markers.call(this, d, i),
 		measurez = JobsDelivered.call(this, d, i).slice().sort(d3.descending),
@@ -36,7 +36,6 @@ var rangez = JobsPromised.call(this, d, i),
       var x0 = this.__chart__ || d3.scale.linear()
           .domain([0, Infinity])
           .range(x1.range());
-
       // Stash the new scale.
       this.__chart__ = x1;
 
@@ -159,7 +158,7 @@ var rangez = JobsPromised.call(this, d, i),
 		var texts=	g.append("g")
 				.style("text-anchor", "end")
 				.attr("class", "texts")
-				.attr("transform", "translate("+(titlePlaceholder-2)+"," + height / 2 + ")")//;
+				.attr("transform", "translate("+(titlePlaceholder-2)+"," + height / 2 + ")");
 				//.attr("class", "textanchor");
 		texts.append("text")
 			.attr("class", "title")
@@ -231,7 +230,6 @@ var rangez = JobsPromised.call(this, d, i),
 function bulletJobsPromised(d) {
   return d.JobsPromised;
 }
-
 /*function bulletMarkers(d) {
 	
 	d.markers = Math.round(d.JobsPromised*.7);

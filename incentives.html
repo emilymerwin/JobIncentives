@@ -231,7 +231,7 @@ var filterPerformance = function(d){
 	var selected = performanceMenu.property("value");
 	countyMenu.property("value", "All Counties")/*.node().focus()*/;
 	var myfilter = data1.filter(function(v){
-		if(selected != "All"){if(selected === "Met promise"){return v.MetJobGoal === "Y"} else if(selected === "Funds recovered"){return v.Status1 === "Deob"} else{return v.MetJobGoal === "N"};}
+		if(selected != "All"){if(selected === "Met promise"){return v.MetJobGoal === "Y"} else if(selected === "Funds recovered"){return v.Status1 === "Deob" | v.Recaptured_Deob != null} else{return v.MetJobGoal === "N"};}
 		else{return true;};
 	});
 	doSVG(myfilter);
@@ -302,7 +302,6 @@ var timeout = setTimeout(function() {
 }, 5000);
 
 </script>
-	
 <script>
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

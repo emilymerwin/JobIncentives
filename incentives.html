@@ -120,7 +120,7 @@ function detectSVG(){
 var data1, svg, bar, svgHeight, yScale;
 var setcountyMenu;
 var countyMenuArr = [];
-
+var sortBestWorst;	
 var margin = {top: 5, right:$("body").width()*.03, bottom: 20, left: $("body").width()*.1},
     width = $("body").width() - margin.left - margin.right,
     height = 50 - margin.top - margin.bottom;
@@ -144,19 +144,19 @@ function sortBars(){
 			return d3.ascending(a.ratio, b.ratio);
 		}
 		else{
-			$("#sortMe").button("option", "label", "Sort worst to best");
+			$("#sortMe span").text("Sort worst to best");
 			return d3.descending(a.ratio,b.ratio);
 		}	
 	})
 	.transition().duration(1000).attr("transform", function(d, i) {return "translate(0," + yScale(i)+")"; });
 	
-	sortOrder = !sortOrder;
+	sortBestWorst = !sortBestWorst;
 }
 performanceMenu.append("option").text("All");	
 performanceMenu.append("option").text("Met promise");
 performanceMenu.append("option").text("Did not meet promise");
 performanceMenu.append("option").text("Funds recovered");
-var sortOrder = false;		
+	
 d3.select("#sortMe").on("click", function() {
 	sortBars();
 });
@@ -188,8 +188,6 @@ d3.json("incentives.json", function(error, data) {
 	}
 	svgHeight = (50 * data1.length) - margin.top - margin.bottom;
 
-//	data1 = data1.sort(function(a, b) { return b.ratio - a.ratio; });
-	doSVG(data1);
 	svg	= d3.select("#incentives-chart").append("svg")
 	    .attr("width", width + margin.left + margin.right)
 	    .attr("height", svgHeight + margin.top + margin.bottom)

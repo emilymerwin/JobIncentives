@@ -12,6 +12,8 @@ d3.bullet = function() {
       JobsPromised = bulletJobsPromised,
     //  markers = bulletMarkers,
       JobsDelivered = bulletJobsDelivered,
+	titles = bullettitles,
+	subtitles = bulletsubtitles,
       width = $("body").width() - margin.left - margin.right,
       height = 30,
       tickFormat = null;
@@ -26,6 +28,8 @@ d3.bullet = function() {
       //    markerz = JobsDelivered.call(this, d, i).slice().sort(d3.descending);
 	//	markerz = markers.call(this, d, i),
 		measurez = JobsDelivered.call(this, d, i).slice().sort(d3.descending),
+		titlez = titles.call(this, d, i),
+		subtitlez = subtitles.call(this, d, i),
 	//	measurez = JobsDelivered.call(this, d, i),
           g = d3.select(this);
       var x1 = d3.scale.linear()
@@ -154,19 +158,21 @@ d3.bullet = function() {
           .attr("transform", bulletTranslate(x1))
           .style("opacity", 1e-6)
           .remove();
-			
-		var texts=	g.append("g")
+		var texts=	g.selectAll("g.texts")
+			.data([titlez])
+
+		var textsEnter = texts.enter().append("g")
 				.style("text-anchor", "end")
 				.attr("class", "texts")
 				.attr("transform", "translate("+(titlePlaceholder-2)+"," + height / 2 + ")");
 				//.attr("class", "textanchor");
-		texts.append("text")
+		textsEnter.append("text")
 			.attr("class", "title")
-			.text(function(d) { return d.Beneficiaries; });	
-		texts.append("text")
+			.text(d.Beneficiaries);	
+		textsEnter.append("text")
 			.attr("class", "subtitle")
 			.attr("dy", "1em")
-			.text(function(d, i){ return d.COUNTY;});
+			.text(d.COUNTY);
     });
     d3.timer.flush();
   }
@@ -185,7 +191,16 @@ d3.bullet = function() {
     JobsPromised = x;
     return bullet;
   };
-
+bullet.titles = function(x) {
+    if (!arguments.length) return titles;
+    titles = x;
+    return bullet;
+  };
+bullet.subtitles = function(x) {
+    if (!arguments.length) return subtitles;
+    subtitles = x;
+    return bullet;
+  };
   // markers (previous, goal)
  /* bullet.markers = function(x) {
     if (!arguments.length) return markers;
@@ -229,6 +244,12 @@ d3.bullet = function() {
 
 function bulletJobsPromised(d) {
   return d.JobsPromised;
+}
+function bullettitles(d) {
+  return d.Beneficiaries;
+}
+function bulletsubtitles(d) {
+  return d.COUNTY;
 }
 /*function bulletMarkers(d) {
 	

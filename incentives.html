@@ -117,7 +117,7 @@ function detectSVG(){
 <script src="http://alt.coxnewsweb.com/ajc/_newsapps/libraries/browsersupport/modernizr.custom.16715.js" type="text/javascript"></script>
 <script>
 
-var data1, svg;
+var data1, svg, bar, svgHeight, yScale;
 var setcountyMenu;
 var countyMenuArr = [];
 
@@ -138,9 +138,9 @@ $("#sortMe").button({label:"Sort worst to best"});
 $("#countySelect").menu();
 $("#performanceSelect").menu();		
 function sortBars(){	
-	d3.select("body").select("#incentives-chart").selectAll("svg").sort(function(a, b){		
-		if(sortOrder){
-			$("#sortMe").button("option", "label", "Sort best to worst");
+	d3.selectAll(".bullet").sort(function(a, b){	
+		if(sortBestWorst){
+			$("#sortMe span").text("Sort best to worst");
 			return d3.ascending(a.ratio, b.ratio);
 		}
 		else{
@@ -148,7 +148,7 @@ function sortBars(){
 			return d3.descending(a.ratio,b.ratio);
 		}	
 	})
-	.transition().duration(1000);
+	.transition().duration(1000).attr("transform", function(d, i) {return "translate(0," + yScale(i)+")"; });
 	
 	sortOrder = !sortOrder;
 }
@@ -186,9 +186,15 @@ d3.json("incentives.json", function(error, data) {
 			data1[i].COUNTY = data1[i].COUNTY + " County";
 		}
 	}
+	svgHeight = (50 * data1.length) - margin.top - margin.bottom;
 
 //	data1 = data1.sort(function(a, b) { return b.ratio - a.ratio; });
 	doSVG(data1);
+	svg	= d3.select("#incentives-chart").append("svg")
+	    .attr("width", width + margin.left + margin.right)
+	    .attr("height", svgHeight + margin.top + margin.bottom)
+	  	.append("g")
+	    	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 	//we only want one of each county in our menu so we need to check and see if it's already in there
 	setcountyMenu = function(){
@@ -236,32 +242,44 @@ var filterPerformance = function(d){
 	doSVG(myfilter);
 }
 function doSVG(data){
+	
+	var listHeight = (50 * data.length) - margin.top - margin.bottom;
+	
+	yScale = d3.scale.ordinal()
+			.domain(d3.range(data.length));
+			yScale.rangeBands([0,listHeight]);
+			
 	//svg = d3.select("body").data(data1).selectAll("svg")
-	svg = d3.select("body").select("#incentives-chart").selectAll("svg")
+	var bar = svg.selectAll(".bullet")
 	      .data(data, function(d) { return d.Serial; });//to keep the bars in the same place, get rid of the function. 
 			
-	svg.exit().transition().duration(0)		
-	//.attr("x", -x1.rangeBand())
-		.remove();
+	var svgEnter = bar.enter().append("g")
+		.attr("class", "bullet")		
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+		.attr("transform", function(d, i) {return "translate("+margin.left+"," + yScale(i)+")"; })
+	      .style("fill-opacity", 0)
+				.append("g")
+						.attr("class", "holder")	
 
-	var svgEnter = svg.enter().append("svg")
-						.attr("class", "bullet")	
-	      				.attr("width", width + margin.left + margin.right)
-	      				.attr("height", height + margin.top + margin.bottom)
-	    				.append("g")
-	      					.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-							.attr("class", "holder")			
-	
+	bar.transition().duration(1000)
+	 .attr("transform", function(d, i) {return "translate(0," + (d.y0 = yScale(i)) + ")"; })
+		 .style("fill-opacity", 1);
+		
+		var barExit = d3.transition(bar.exit())
+		.transition().duration(1000)
+		.attr("transform", function(d) { return "translate(0," + (d.y0 + listHeight) + ")"; })			
+		    .style("fill-opacity", 0)		
+			.remove();
 //	d3.transition(svg).select(".holder").call(chart.duration(1000));
-	svg.select(".holder").append("g").attr("class", "bars").call(chart.duration(1000));
-	sortOrder = false;
-	sortBars();
+	bar.select(".holder").call(chart.duration(1000));
+	
 	//change the color of the over-acheiver bar
-	svg.select(".holder")
+	bar.select(".holder")
 		.attr("class", function(d){ if(d.ratio >1){return "holder bonus"} else{ return "holder"}});
 	
 		$(document).tooltip({
-			items: "svg g g", 
+			items: "svg g", 
 			content: function(){ 
 				var data = this.__data__;
 				var tip = "<span class='tip'><span class='tiptitl'>Beneficiary:</span> ";

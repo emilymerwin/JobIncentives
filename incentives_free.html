@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
 <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
@@ -21,12 +20,6 @@ body {
   position: relative;
   width: 100%;
 }
-
-/*button {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-}*/
 button{
 	margin-top:1.1em;
 	margin-bottom:0;
@@ -42,21 +35,8 @@ button{
 }
 #legend #promisedKey { 
 	border-bottom:25px solid #CED1D1;
-/*	background-color: #eee;		
-	display:inline-block; 
-	width:30px; 
-	height:25px; 
-	margin:-2px;	
-	position:relative;
-	top:6px;*/
 }
 #legend #deliveredKey {
-/*	display:inline-block;
-	width:30px;
-	height:8px;
-	background-color: #366DA5;
-	position:relative;*/
-	/*top:10px;*/
 	border-bottom:8px solid #366da5;
 	padding-bottom:11px;
 }
@@ -68,14 +48,12 @@ button{
 	display:absolute;
 	padding:5px;
 	margin:5px;
-	/*height:60px;*/
 }
 
 .bullet .range.s1 { fill: #ddd; }
 .bullet .range.s2 { fill: #ccc; }
 .bullet .measure.s0, .bullet .measure.s1 { fill: steelblue; }
 .bullet .bonus .measure.s0 { fill: lightsteelblue; }
-/*.bullet .measure.s1 { fill: steelblue; }*/
 .bullet .title { font-size: 12px; font-weight: bold;}
 .bullet .subtitle { fill: #999; margin-top:3px;}
 .tiptitl{font-weight:bold}
@@ -99,6 +77,11 @@ function detectSVG(){
 	#incentives-chart {display:none;} 
 	#legend {display:none;}</style>
 	<![endif]-->
+<div class="container nine columns.omega">
+	<!--<div class="three columns alpha">County<select id="countySelect"></select></div>
+	<div class="three columns ">Performance<select id="performanceSelect"></select></div>
+	<div class="three columns"><button id="sortMe"></button></div>-->
+</div>
 
 <div id="legend" class="container.omega seven columns.omega">
 	<div id="promisedKey" class="menuGroup two columns">Jobs promised</div>
@@ -107,75 +90,32 @@ function detectSVG(){
 </div>
 <div id="incentives-chart" class="container twelve columns"></div>
 <script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="incentives2.js"></script>
+<script src="incentives.js"></script>
 <script src="http://code.jquery.com/jquery-1.9.1.min.js" type="text/javascript"></script>
 <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.min.js" type="text/javascript"></script>
 <script src="http://alt.coxnewsweb.com/ajc/_newsapps/libraries/browsersupport/modernizr.custom.16715.js" type="text/javascript"></script>
 <script>
 
-var data1, svg;
-var setcountyMenu;
+var data1, svg, bar, yScale, sortBestWorst;
 var countyMenuArr = [];
-
-var margin = {top: 5, right:$("body").width()*.03, bottom: 20, left: $("body").width()*.1},
-    width = $("body").width() - margin.left - margin.right,
+var bodyWidth = $("body").width();
+var margin = {top: 5, right:bodyWidth*.03, bottom: 20, left: bodyWidth*.1},
+    width = bodyWidth - margin.left - margin.right,
     height = 50 - margin.top - margin.bottom;
 
-var y = d3.scale.ordinal()
-	.rangeRoundBands([0, height], .1);
-	
 var chart = d3.bullet()
     .width(width)
     .height(height);
 
-var countyMenu = d3.select("#countySelect")
-	.on("change", change);
-	
-var performanceMenu = d3.select("#performanceSelect")
-	.on("change", changePerformance);
-$("#sortMe").button({label:"Sort worst to best"});
-$("#countySelect").menu();
-$("#performanceSelect").menu();		
-//d3.select("#incentives-chart").attr("class", "container row")
-function sortBars(){	
-	d3.select("body").select("#incentives-chart").selectAll("svg").sort(function(a, b){		
-		if(sortOrder){
-			$("#sortMe").button("option", "label", "Sort best to worst");
-			return d3.ascending(a.ratio, b.ratio);
-		}
-		else{
-			$("#sortMe").button("option", "label", "Sort worst to best");
-			return d3.descending(a.ratio,b.ratio);
-		}	
-	})
-	.transition().duration(1000);
-	
-//	$("#t"+num).button( "option", "label", "Fund" );
-	
-	sortOrder = !sortOrder;
-}
-performanceMenu.append("option").text("All");	
-performanceMenu.append("option").text("Met promise");
-performanceMenu.append("option").text("Did not meet promise");
-performanceMenu.append("option").text("Funds recovered");
-performanceMenu.property("value", "Loading...");
-var sortOrder = false;		
-d3.select("#sortMe").on("click", function() {
-	sortBars();
-//	d3.range(svg).reverse();
-});
-
-d3.json("incentives3.json", function(error, data) {
+d3.json("incentives.json", function(error, data) {
 	data1 = data;
+	countyMenuArr.push("All Counties");//add default option for menu
 	for (var i=0; i<data1.length; i++){
 		//get rid of some irregular ones that don't make sense with our presentation
-		if(data1[i].Beneficiaries === "" || data1[i].JobsPromised === null || data1[i].JobsPromised === undefined || data[i].JobsPromised === 0 || data[i].JobsPromised === []){
+	/*	if(data1[i].JobsPromised === null || data1[i].JobsPromised === 0){
 			data1.splice(i, 1);
-		}
+		}*/
 		var ratio = (data1[i].JobsDelivered/data1[i].JobsPromised);
-		if(ratio === undefined || isNaN(ratio) || ratio === null){
-			ratio = 0;
-		}
 		data1[i].ratio = ratio;
 		//if they exceeded promised jobs, create a new bar to show distinction. Creating property .JobsDelivered2 to hold our array
 		if(ratio > 1){
@@ -185,130 +125,86 @@ d3.json("incentives3.json", function(error, data) {
 		else{
 			data1[i].JobsDelivered2 = [data[i].JobsDelivered];
 		}
-		
-		if(data1[i].COUNTY != "Multi-County"){
-			data1[i].COUNTY = data1[i].COUNTY + " County";
-		}
+		//check if the county is in our menu array and if not add it
+		if(countyMenuArr.indexOf(data1[i].COUNTY) === -1){ countyMenuArr.push(data1[i].COUNTY);}		
+		//if(data1[i].COUNTY !== "Multi-County"){
+		//	data1[i].COUNTY = data1[i].COUNTY + " County";
+	//	}
 	}
+	var svgHeight = (50 * 10) + margin.top + margin.bottom;//we are only showing 10 on free site
 
-//	data1 = data1.sort(function(a, b) { return b.ratio - a.ratio; });
-doSVG(data1.sort(function(a,b){ return d3.descending(a.ratio, b.ratio);}).slice(0,10));
-	//we only want one of each county in our menu so we need to check and see if it's already in there
-	setcountyMenu = function(){
-		countyMenuArr.push("All Counties");//This isn't in the data so we need to create it
-		data1.filter(function(v, i) {		
-				if(countyMenuArr.indexOf(v.COUNTY) != -1){ return true;}
-				else{countyMenuArr.push(v.COUNTY); return false;};
-		});
-		return countyMenuArr.sort();//Alphabetize
-	}
-	//add counties from the data to the menu
-	countyMenu.selectAll("option")
-		.data(setcountyMenu)
-		.enter().append("option")
-			.text(function(d) {return d;});
+	svg	= d3.select("#incentives-chart").append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", svgHeight + margin.top + margin.bottom)
+		.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	doSVG(data1.sort(function(a, b){ return d3.descending(a.ratio, b.ratio);}).slice(0,10));
+
 });//d3.json()
 
-var filterCounties = function(d){
-	var selected = countyMenu.property("value");
-	performanceMenu.property("value", "All")/*.node().focus()*/;	
-	var myfilter = data1.filter(function(v) {
-		if(selected != "All Counties"){return (v.COUNTY) === selected;}
-		else{return true;};
-	});
-	//	doSVG(myfilter, counties);
-	doSVG(myfilter);	
-}
-//might use this later to allow removal/addition of deobligated entries
-/*filterObligated = function(d){
-	var selected = performanceMenu.property("value");
-	countyMenu.property("value", "All Counties");
-	var myfilter = data1.filter(function(v) {
-		if(selected != "All"){ if(selected === "Yes"){return v.Status1 === "Deob"} else{ return v.Status1 != "Deob"}}
-		else{return true;};
-	});	
-	doSVG(myfilter);	
-}*/
-var filterPerformance = function(d){
-	var selected = performanceMenu.property("value");
-	countyMenu.property("value", "All Counties")/*.node().focus()*/;
-	var myfilter = data1.filter(function(v){
-		if(selected != "All"){if(selected === "Met promise"){return v.MetJobGoal === "Y"} else if(selected === "Funds recovered"){return v.Status1 === "Deob"} else{return v.MetJobGoal === "N"};}
-		else{return true;};
-	});
-	doSVG(myfilter);
-}
 function doSVG(data){
-	//svg = d3.select("body").data(data1).selectAll("svg")
-	y.domain(data.map(function(d) { return d.Serial; }));
-	svg = d3.select("body").select("#incentives-chart").selectAll("svg")
-	      .data(data, function(d) { return d.Serial; });//to keep the bars in the same place, get rid of the function. 
-			//.data(data);//to keep the bars in the same place, get rid of the function. 
-	svg.exit().transition().duration(0)		
-	//.attr("x", -x1.rangeBand())
-		.remove();
+	sortBestWorst = true;
+	$("#sortMe span").text("Sort worst to best");
 
-	var svgEnter = svg.enter().append("svg")
-						.attr("class", "bullet")	
-	      				.attr("width", width + margin.left + margin.right)
-	      				.attr("height", height + margin.top + margin.bottom)
-	    				.append("g")
-	      					.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-						//	.attr("y", y.rangeBand())
-						//.attr("transform", function(d) { return "translate(0," + (y(d.Serial) + height) + ")"; })
-							.attr("class", "holder")			
-						.transition()
+	var listHeight = (50 * data.length) + margin.top + margin.bottom;
 	
+	yScale = d3.scale.ordinal()
+			.domain(d3.range(data.length));
+			yScale.rangeBands([0,listHeight]);
 
-	/*	var hi = d3.select("#incentives-chart").selectAll("svg").select("g.title");
-		console.lhi.node()		*/
-//	d3.transition(svg).select(".holder").call(chart.duration(1000));
-	svg.select(".holder").append("g").attr("class", "bars").call(chart.duration(1000));
-	sortOrder = false;
-	sortBars();
+	var bar = svg.selectAll(".bullet")
+		.data(data, function(d) { return d.Serial; });//to keep the bars in the same place, get rid of the function. 
+			
+	var svgEnter = bar.enter().append("g")
+		.attr("class", "bullet")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+		.attr("transform", function(d, i) {return "translate("+margin.left+"," + yScale(i)+")"; })
+		.style("fill-opacity", 0)
+		.append("g")
+			.attr("class", "holder")
+
+	bar.transition().duration(1000)
+		.attr("transform", function(d, i) {return "translate(0," + (d.y0 = yScale(i)) + ")"; })
+		.style("fill-opacity", 1);
+
+		var barExit = d3.transition(bar.exit())
+			.transition().duration(1000)
+			.attr("transform", function(d) { return "translate(0," + (d.y0 + listHeight) + ")"; })			
+		    .style("fill-opacity", 0)		
+			.remove();
+
+	bar.select(".holder").call(chart.duration(1000));
+
 	//change the color of the over-acheiver bar
-	svg.select(".holder")
-		.attr("class", function(d){ if(d.ratio >1){return "bonus"} else{ return }});
-	
-		$(document).tooltip({
-			items: "svg g g", 
-			content: function(){ 
-				var data = this.__data__;
-				var tip = "<span class='tip'><span class='tiptitl'>Beneficiary:</span> ";
-				if(data.longName != null){
+	bar.select(".holder")
+		.attr("class", function(d){ if(d.ratio >1){return "holder bonus"} else{ return "holder"}});
+
+	$(document).tooltip({
+		items: $(".bullet"), 
+		content: function(){ 
+			var data = this.__data__;
+			var tip = "<span class='tip'><span class='tiptitl'>Beneficiary:</span> ";
+			if(this.tip === undefined){
+				if(data.longName !== undefined){
 					tip += data.longName;
 				}
 				else{
 					tip += data.Beneficiaries;
 				}
 				tip += "<br/><span class='tiptitl'>Jobs Promised:</span> "+data.JobsPromised+"<br/><span class='tiptitl'>Jobs Delivered:</span> "+data.JobsDelivered+"<br/><span class='tiptitl'>Grant amount:</span> $"+data.Grant_Amt;
-				if(data.Recaptured_Deob != null){
-					tip += "<br/><span class='tiptitl'>Recaptured funds:</span> $"+data.Recaptured_Deob
+				if(data.Recaptured_Deob !== null){
+					tip += "<br/><span class='tiptitl'>Recaptured funds:</span> $"+data.Recaptured_Deob;
 				}
-				tip += "<br/><span class='tiptitl'>Description: </span>"+data.Description+"</span>"
-				return tip;
+				tip += "<br/><span class='tiptitl'>Description: </span>"+data.Description+"</span>";
+				this.tip = tip;//store it so we don't have to calculate all that again
 			}
-		});
+			else{ tip = this.tip;}
+			return tip;
+		}
+	});
 }//doSVG
-
-function change() {
-  clearTimeout(timeout);
-filterCounties();
-//svg.datum(data1).call(chart.duration(1000));
-  /*d3.transition()
-      .duration(750)
-      .each(shuffle);*/
-}
-function changePerformance() {
-	clearTimeout(timeout);
-	filterPerformance();
-}
-	
-var timeout = setTimeout(function() {
-	//  menu.property("value", "All Counties").node().focus();
-//	deobligatedMenu.property("value", "All").node().focus();
-//	filterPerformance();
-}, 5000);
 
 </script>
 <script>

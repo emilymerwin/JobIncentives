@@ -277,21 +277,25 @@ function doSVG(data){
 		.attr("class", function(d){ if(d.ratio >1){return "holder bonus"} else{ return "holder"}});
 	
 		$(document).tooltip({
-			items: "svg g", 
+			items: $(".bullet"), 
 			content: function(){ 
 				var data = this.__data__;
 				var tip = "<span class='tip'><span class='tiptitl'>Beneficiary:</span> ";
-				if(data.longName != null){
+				if(this.tip === undefined){
+				if(data.longName !== undefined){
 					tip += data.longName;
 				}
 				else{
 					tip += data.Beneficiaries;
 				}
 				tip += "<br/><span class='tiptitl'>Jobs Promised:</span> "+data.JobsPromised+"<br/><span class='tiptitl'>Jobs Delivered:</span> "+data.JobsDelivered+"<br/><span class='tiptitl'>Grant amount:</span> $"+data.Grant_Amt;
-				if(data.Recaptured_Deob != null){
+				if(data.Recaptured_Deob !== null){
 					tip += "<br/><span class='tiptitl'>Recaptured funds:</span> $"+data.Recaptured_Deob;
 				}
 				tip += "<br/><span class='tiptitl'>Description: </span>"+data.Description+"</span>";
+				this.tip = tip;//store it so we don't have to calculate all that again
+			}
+				else{ tip = this.tip;}
 				return tip;
 			}
 		});

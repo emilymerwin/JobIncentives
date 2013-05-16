@@ -167,7 +167,7 @@ d3.json("incentives.json", function(error, data) {
 		//	data1[i].COUNTY = data1[i].COUNTY + " County";
 	//	}
 	}
-	var svgHeight = (50 * data1.length) - margin.top - margin.bottom;
+	var svgHeight = (50 * data1.length) + margin.top + margin.bottom;
 
 	svg	= d3.select("#incentives-chart").append("svg")
 		.attr("width", width + margin.left + margin.right)
